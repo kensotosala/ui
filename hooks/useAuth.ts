@@ -56,24 +56,30 @@ export const useAuth = (): UseAuthReturn => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // Función de login
+  // Función de login con logs de depuración
   const login = useCallback(
     async (credentials: LoginCredentials) => {
       try {
+        console.log("Iniciando login...");
         setIsLoading(true);
-        const response = await authService.login(credentials);
 
-        // Obtener datos del usuario desde el token
+        const response = await authService.login(credentials);
+        console.log("Login exitoso, token recibido:", response.token);
+
         const userData = authService.decodeJWT(response.token);
+        console.log("Usuario decodificado:", userData);
+
         if (userData) {
           setUser(userData);
+          console.log("Usuario establecido en estado");
         }
 
-        // Redirigir a la página principal
+        console.log("Redirigiendo a /");
         router.push("/");
-        router.refresh(); // Forzar recarga de la página
-      } catch (error: any) {
-        throw error;
+        router.refresh();
+      } catch (err: any) {
+        console.error("Error en login:", err);
+        throw err;
       } finally {
         setIsLoading(false);
       }
@@ -88,7 +94,7 @@ export const useAuth = (): UseAuthReturn => {
       await authService.logout();
       setUser(null);
 
-      // Redirigir a login
+      console.log("Usuario desconectado, redirigiendo a /login");
       router.push("/login");
       router.refresh();
     } catch (error) {
@@ -99,18 +105,14 @@ export const useAuth = (): UseAuthReturn => {
   }, [router]);
 
   // Verificar autenticación
-  const checkAuth = useCallback(() => {
-    return authService.isAuthenticated();
-  }, []);
+  const checkAuth = useCallback(() => authService.isAuthenticated(), []);
 
   // Verificar roles
-  const hasRole = useCallback((role: string) => {
-    return authService.hasRole(role);
-  }, []);
-
-  const hasAnyRole = useCallback((roles: string[]) => {
-    return authService.hasAnyRole(roles);
-  }, []);
+  const hasRole = useCallback((role: string) => authService.hasRole(role), []);
+  const hasAnyRole = useCallback(
+    (roles: string[]) => authService.hasAnyRole(roles),
+    []
+  );
 
   return {
     user,

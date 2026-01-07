@@ -1,28 +1,22 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
 import { useAsistencia } from "@/hooks/useAsistencia";
 import {
   Clock,
   CheckCircle,
   LogIn,
   LogOut,
-  Calendar,
-  AlertCircle,
   Loader2,
+  User,
+  Building,
+  Calendar,
+  CheckCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
 interface MarcacionAsistenciaProps {
@@ -75,13 +69,12 @@ export const MarcacionAsistencia: React.FC<MarcacionAsistenciaProps> = ({
       setFechaActual(
         now.toLocaleDateString("es-ES", {
           weekday: "long",
-          year: "numeric",
+          day: "2-digit",
           month: "long",
-          day: "numeric",
+          year: "numeric",
         })
       );
     };
-
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
@@ -96,216 +89,300 @@ export const MarcacionAsistencia: React.FC<MarcacionAsistenciaProps> = ({
     if (!estado)
       return {
         texto: "Cargando...",
-        color: "default",
         icon: <Loader2 className="h-4 w-4 animate-spin" />,
+        color: "bg-gray-100 text-gray-800",
       };
 
     switch (estado.estado) {
       case "PENDIENTE":
         return {
           texto: "Pendiente de entrada",
-          color: "yellow",
           icon: <Clock className="h-4 w-4" />,
+          color: "bg-yellow-100 text-yellow-800 border-yellow-300",
         };
       case "PRESENTE":
         return {
           texto: "Presente (pendiente salida)",
-          color: "green",
           icon: <LogIn className="h-4 w-4" />,
+          color: "bg-green-100 text-green-800 border-green-300",
         };
       case "COMPLETO":
         return {
           texto: "Jornada completada",
-          color: "blue",
           icon: <CheckCircle className="h-4 w-4" />,
+          color: "bg-blue-100 text-blue-800 border-blue-300",
         };
       default:
         return {
           texto: estado.estado,
-          color: "default",
-          icon: <AlertCircle className="h-4 w-4" />,
+          icon: <Clock className="h-4 w-4" />,
+          color: "bg-gray-100 text-gray-800",
         };
     }
   };
 
-  const getBotonTexto = () => {
-    if (!estado) return "Cargando...";
-
-    if (estado.estado === "PENDIENTE") return "Marcar Entrada";
-    if (estado.estado === "PRESENTE") return "Marcar Salida";
-    return "Jornada Completada";
-  };
-
-  const getBotonIcono = () => {
-    if (!estado) return <Loader2 className="h-4 w-4 animate-spin" />;
+  const getBotonInfo = () => {
+    if (!estado)
+      return {
+        texto: "Cargando...",
+        icon: <Loader2 className="h-5 w-5 animate-spin mr-2" />,
+        variant: "default" as const,
+        disabled: true,
+      };
 
     if (estado.estado === "PENDIENTE")
-      return <LogIn className="h-4 w-4 mr-2" />;
+      return {
+        texto: "Marcar Entrada",
+        icon: <LogIn className="h-5 w-5 mr-2" />,
+        variant: "default" as const,
+        className: "bg-green-600 hover:bg-green-700",
+      };
     if (estado.estado === "PRESENTE")
-      return <LogOut className="h-4 w-4 mr-2" />;
-    return <CheckCircle className="h-4 w-4 mr-2" />;
+      return {
+        texto: "Marcar Salida",
+        icon: <LogOut className="h-5 w-5 mr-2" />,
+        variant: "default" as const,
+        className: "bg-blue-600 hover:bg-blue-700",
+      };
+    return {
+      texto: "Jornada Completada",
+      icon: <CheckCheck className="h-5 w-5 mr-2" />,
+      variant: "secondary" as const,
+      disabled: true,
+      className: "bg-gray-300 cursor-not-allowed",
+    };
   };
 
   const estaDeshabilitado = estado?.estado === "COMPLETO";
-
   const estadoInfo = getEstadoInfo();
+  const botonInfo = getBotonInfo();
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-lg">
-      <CardHeader className="bg-linear-to-r from-blue-50 to-indigo-50 border-b">
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-2xl flex items-center gap-2">
-              <Calendar className="h-6 w-6 text-blue-600" />
-              Control de Asistencia
-            </CardTitle>
-            <CardDescription>
-              Sistema de registro de jornada laboral
-            </CardDescription>
-          </div>
-          <Badge variant="outline" className="flex items-center gap-1">
-            {estadoInfo.icon}
-            <span>{estadoInfo.texto}</span>
-          </Badge>
-        </div>
-      </CardHeader>
-
-      <CardContent className="p-6 space-y-6">
-        {/* Información del empleado */}
-        <div className="space-y-3">
-          <div className="flex justify-between">
-            <span className="text-sm font-medium text-gray-500">Empleado:</span>
-            <span className="text-sm font-semibold">{nombreEmpleado}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-sm font-medium text-gray-500">
-              Departamento:
-            </span>
-            <span className="text-sm">{departamento}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-sm font-medium text-gray-500">ID:</span>
-            <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
-              {empleadoId}
-            </span>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Información de fecha y hora */}
-        <div className="space-y-4">
-          <div className="text-center">
-            <div className="text-sm text-gray-500 mb-1">Fecha actual</div>
-            <div className="text-lg font-semibold">{fechaActual}</div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                <Clock className="h-4 w-4" />
-                Hora local
+    <Card className="w-full shadow-lg border border-gray-200">
+      <CardContent className="p-6">
+        <div className="flex flex-col md:flex-row items-stretch gap-6">
+          {/* Columna 1: Información del empleado */}
+          <div className="flex-1 space-y-4 min-w-62.5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <User className="h-6 w-6 text-blue-600" />
               </div>
-              <div className="text-2xl font-bold text-center font-mono">
-                {horaLocal}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                <Clock className="h-4 w-4" />
-                Hora servidor
-              </div>
-              <div className="text-2xl font-bold text-center font-mono">
-                {horaServer || "--:--:--"}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Registros de asistencia */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg">Registro del día</h3>
-
-          {estado ? (
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <LogIn className="h-5 w-5 text-green-600" />
-                  <span>Hora de entrada:</span>
+              <div>
+                <h3 className="text-lg font-semibold">{nombreEmpleado}</h3>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Building className="h-4 w-4" />
+                  <span className="text-sm">{departamento}</span>
                 </div>
-                <span className="font-mono font-semibold">
-                  {estado.horaEntrada || "--:--"}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <LogOut className="h-5 w-5 text-blue-600" />
-                  <span>Hora de salida:</span>
+                <div className="mt-1">
+                  <Badge variant="outline" className="text-xs">
+                    ID: {empleadoId}
+                  </Badge>
                 </div>
-                <span className="font-mono font-semibold">
-                  {estado.horaSalida || "--:--"}
-                </span>
               </div>
             </div>
-          ) : (
-            <div className="space-y-3">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
+
+            <Separator />
+
+            {/* Estado actual */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-gray-500">
+                ESTADO ACTUAL
+              </h4>
+              <div
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${estadoInfo.color}`}
+              >
+                {estadoInfo.icon}
+                <span className="font-medium">{estadoInfo.texto}</span>
+              </div>
             </div>
-          )}
-        </div>
 
-        <Separator />
+            {/* Fecha */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-gray-500">FECHA</h4>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50">
+                <Calendar className="h-4 w-4 text-gray-600" />
+                <span className="font-medium">{fechaActual}</span>
+              </div>
+            </div>
+          </div>
 
-        {/* Botón de acción */}
-        <div className="pt-2">
-          <Button
-            onClick={marcarAsistencia}
-            disabled={isLoading || estaDeshabilitado}
-            className={`w-full py-6 text-lg ${
-              estado?.estado === "PRESENTE"
-                ? "bg-blue-600 hover:bg-blue-700"
-                : estado?.estado === "COMPLETO"
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
-            }`}
-            size="lg"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                Procesando...
-              </>
-            ) : (
-              <>
-                {getBotonIcono()}
-                {getBotonTexto()}
-              </>
-            )}
-          </Button>
+          <Separator
+            orientation="vertical"
+            className="hidden md:block h-auto"
+          />
 
-          {estaDeshabilitado && (
-            <p className="text-center text-sm text-gray-500 mt-2">
-              ✅ Tu jornada laboral de hoy ya ha sido completada
-            </p>
-          )}
+          {/* Columna 2: Tiempos y registro */}
+          <div className="flex-1 min-w-75">
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {/* Hora Local */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-sm">HORA LOCAL</span>
+                </div>
+                <div className="text-2xl font-mono font-bold bg-gray-50 p-3 rounded-lg">
+                  {horaLocal}
+                </div>
+              </div>
 
-          {estado?.estado === "PRESENTE" && (
-            <p className="text-center text-sm text-blue-600 mt-2">
-              ⏰ Recuerda marcar tu salida al finalizar tu jornada
-            </p>
-          )}
-        </div>
+              {/* Hora Servidor */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-sm">HORA SERVIDOR</span>
+                </div>
+                <div className="text-2xl font-mono font-bold bg-gray-50 p-3 rounded-lg">
+                  {horaServer || "--:--"}
+                </div>
+              </div>
+            </div>
 
-        {/* Información adicional */}
-        <div className="text-xs text-gray-400 text-center space-y-1">
-          <p>• El registro se realiza en tiempo real con el servidor</p>
-          <p>• La hora del servidor es la oficial para el registro</p>
-          <p>• Contacta con RRHH ante cualquier incidencia</p>
+            {/* Registros del día */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium text-gray-500">
+                REGISTRO DEL DÍA
+              </h4>
+
+              <div className="space-y-3">
+                {/* Entrada */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-50 rounded-lg">
+                      <LogIn className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Entrada</p>
+                      <p className="text-xs text-gray-500">Hora de inicio</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-mono font-semibold">
+                      {estado?.horaEntrada || "--:--"}
+                    </div>
+                    <div className="text-xs text-gray-500">HH:MM</div>
+                  </div>
+                </div>
+
+                {/* Salida */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-50 rounded-lg">
+                      <LogOut className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Salida</p>
+                      <p className="text-xs text-gray-500">
+                        Hora de finalización
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-mono font-semibold">
+                      {estado?.horaSalida || "--:--"}
+                    </div>
+                    <div className="text-xs text-gray-500">HH:MM</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Separator
+            orientation="vertical"
+            className="hidden md:block h-auto"
+          />
+
+          {/* Columna 3: Acción */}
+          <div className="flex-1 min-w-50">
+            <div className="h-full flex flex-col justify-center">
+              <div className="space-y-4">
+                <div className="text-center">
+                  <h4 className="text-lg font-semibold mb-2">
+                    ACCIÓN REQUERIDA
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    {estado?.estado === "PENDIENTE"
+                      ? "Presiona el botón para registrar tu entrada"
+                      : estado?.estado === "PRESENTE"
+                      ? "Presiona el botón para registrar tu salida"
+                      : "Tu jornada ha sido completada"}
+                  </p>
+                </div>
+
+                <div className="flex flex-col items-center">
+                  <Button
+                    onClick={marcarAsistencia}
+                    disabled={isLoading || botonInfo.disabled}
+                    variant={botonInfo.variant}
+                    className={`w-full py-6 text-lg ${
+                      botonInfo.className || ""
+                    }`}
+                    size="lg"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        Procesando...
+                      </>
+                    ) : (
+                      <>
+                        {botonInfo.icon}
+                        {botonInfo.texto}
+                      </>
+                    )}
+                  </Button>
+
+                  {/* Mensajes informativos */}
+                  <div className="mt-4 space-y-2 text-center">
+                    {estaDeshabilitado && (
+                      <div className="flex items-center justify-center gap-2 text-green-600">
+                        <CheckCircle className="h-4 w-4" />
+                        <p className="text-sm">
+                          ✅ Tu jornada ha sido completada
+                        </p>
+                      </div>
+                    )}
+
+                    {estado?.estado === "PRESENTE" && (
+                      <div className="flex items-center justify-center gap-2 text-blue-600">
+                        <Clock className="h-4 w-4" />
+                        <p className="text-sm">
+                          ⏰ Recuerda marcar tu salida al finalizar
+                        </p>
+                      </div>
+                    )}
+
+                    {estado?.estado === "PENDIENTE" && (
+                      <div className="text-sm text-gray-500">
+                        La hora del servidor es la oficial para el registro
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Información adicional */}
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h5 className="text-sm font-medium mb-2">
+                    INFORMACIÓN IMPORTANTE
+                  </h5>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-3 w-3 text-green-600 mt-0.5 shrink-0" />
+                      <span>El registro se realiza en tiempo real</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-3 w-3 text-green-600 mt-0.5 shrink-0" />
+                      <span>La hora del servidor es la oficial</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-3 w-3 text-green-600 mt-0.5 shrink-0" />
+                      <span>Contacta con RRHH ante cualquier incidencia</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -1,13 +1,22 @@
+"use client";
+
+import React from "react";
 import { MarcacionAsistencia } from "@/components/asistencia/MarcacionAsistencia";
 import DisplayDate from "@/components/DisplayDate";
-import React from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Home = () => {
+  const { user } = useAuth();
+
+  console.log("Usuario actual:", user);
+
   return (
     <div className="text-center">
-      <h1 className="text-3xl font-semibold">Bienvenido</h1>
-      <p className="text-lg">Kendall Salazar Soto</p>
-      <MarcacionAsistencia empleadoId={16} />
+      <h1 className="text-3xl font-semibold mb-4">Bienvenido</h1>
+
+      {/* Usar el employeeId del usuario autenticado */}
+      <MarcacionAsistencia empleadoId={user?.employeeId || 0} />
+
       <DisplayDate />
     </div>
   );

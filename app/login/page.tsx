@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
+
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Lock, Mail, Eye, EyeOff, Shield } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
+import { useAuthContext } from "@/components/providers/AuthProvider";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -28,13 +29,15 @@ export default function LoginPage() {
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  // Usar el contexto en lugar del hook
+  const { login, isAuthenticated, isLoading: authLoading } = useAuthContext();
   const router = useRouter();
 
   // Redirigir si ya está autenticado
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
       router.push("/");
+      router.refresh();
     }
   }, [isAuthenticated, authLoading, router]);
 
@@ -52,6 +55,9 @@ export default function LoginPage() {
       } else {
         localStorage.removeItem("remembered_user");
       }
+
+      // Forzar recarga completa para refrescar contexto
+      window.location.href = "/";
     } catch (err: any) {
       setError(err.message || "Error al iniciar sesión");
     } finally {

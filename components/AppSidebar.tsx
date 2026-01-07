@@ -23,6 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
 
 const items = [
   {
@@ -33,6 +34,7 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const { user } = useAuth();
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="py-4">
@@ -77,7 +79,7 @@ export function AppSidebar() {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
                   <User2 />
-                  <span>Kendall Salazar Soto</span>
+                  <span>{user?.fullName || user?.username || "Usuario"}</span>
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>

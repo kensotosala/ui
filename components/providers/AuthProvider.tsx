@@ -1,14 +1,25 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { authService, UserData } from "@/services/authService";
+import {
+  authService,
+  UserData,
+  LoginCredentials,
+} from "@/services/authService";
 import { Loader2 } from "lucide-react";
 
 interface AuthContextType {
   user: UserData | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
   checkRole: (role: string) => boolean;
   checkAnyRole: (roles: string[]) => boolean;
@@ -37,24 +48,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Función para cargar usuario desde token
+  const loadUserFromToken = useCallback(() => {
+    const token = authService.getToken();
+    if (token && authService.isAuthenticated()) {
+      const userData = authService.decodeJWT(token);
+      if (userData) {
+        setUser(userData);
+        return true;
+      }
+    }
+    setUser(null);
+    return false;
+  }, []);
+
+  // Inicialización al montar
   useEffect(() => {
     const initializeAuth = async () => {
       setIsLoading(true);
-
-      const currentUser = authService.getCurrentUser();
-      const isAuth = authService.isAuthenticated();
-
-      if (isAuth && currentUser) {
-        setUser(currentUser);
-      } else {
-        setUser(null);
-      }
-
+      loadUserFromToken();
       setIsLoading(false);
     };
-
     initializeAuth();
-  }, []);
+  }, [loadUserFromToken]);
+
+  // Escuchar cambios en localStorage para sincronización entre pestañas
+  useEffect(() => {
+    const handleStorageChange = () => {
+      loadUserFromToken();
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [loadUserFromToken]);
 
   // Protección de rutas
   useEffect(() => {
@@ -66,14 +91,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     if (isPublicRoute) return;
 
-    const isAuthenticated = authService.isAuthenticated();
-
-    if (!isAuthenticated) {
+    if (!authService.isAuthenticated()) {
       router.push("/login");
-      return;
     }
   }, [pathname, isLoading, router]);
 
+  // Función de login
+  const login = async (credentials: LoginCredentials) => {
+    try {
+      setIsLoading(true);
+      await authService.login(credentials);
+      loadUserFromToken();
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Función de logout
   const logout = async () => {
     await authService.logout();
     setUser(null);
@@ -106,6 +142,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         user,
         isAuthenticated: !!user,
         isLoading,
+        login,
         logout,
         checkRole,
         checkAnyRole,

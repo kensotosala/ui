@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import api from "@/lib/axios-config";
 
@@ -30,11 +31,15 @@ export const authService = {
       const response = await api.post<AuthResponse>("/auth/login", credentials);
 
       if (response.data.token) {
-        // Guardar token y datos en localStorage
-        localStorage.setItem("auth_token", response.data.token);
-        localStorage.setItem("auth_expires", response.data.expiration);
+        // Guardar token y expiración en cookies
+        document.cookie = `auth_token=${response.data.token}; path=/; max-age=${
+          60 * 60 * 24 * 7
+        }`; // 7 días
+        document.cookie = `auth_expires=${
+          response.data.expiration
+        }; path=/; max-age=${60 * 60 * 24 * 7}`;
 
-        // Decodificar JWT para obtener datos del usuario
+        // Guardar datos del usuario en localStorage
         const userData = this.decodeJWT(response.data.token);
         if (userData) {
           localStorage.setItem("user_data", JSON.stringify(userData));
@@ -52,12 +57,17 @@ export const authService = {
 
   async logout(): Promise<void> {
     try {
-      // Opcional: llamar al endpoint de logout del backend
       await api.post("/auth/logout");
     } catch (error) {
       console.warn("Error al cerrar sesión en el servidor:", error);
     } finally {
-      // Limpiar datos locales siempre
+      // Limpiar cookies
+      document.cookie =
+        "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      document.cookie =
+        "auth_expires=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+
+      // Limpiar localStorage
       this.clearAuthData();
     }
   },
@@ -75,7 +85,6 @@ export const authService = {
 
       const payload = JSON.parse(jsonPayload);
 
-      // Extraer roles del token
       const roles =
         payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
       const roleIds =
@@ -123,6 +132,15 @@ export const authService = {
 
   getToken(): string | null {
     if (typeof window === "undefined") return null;
+
+    const cookies = document.cookie.split(";");
+    for (const cookie of cookies) {
+      const [name, value] = cookie.trim().split("=");
+      if (name === "auth_token" && value) {
+        return value;
+      }
+    }
+
     return localStorage.getItem("auth_token");
   },
 
@@ -132,8 +150,12 @@ export const authService = {
     const token = this.getToken();
     if (!token) return false;
 
-    // Verificar expiración
-    const expires = localStorage.getItem("auth_expires");
+    const expiresCookie = document.cookie
+      .split(";")
+      .find((c) => c.trim().startsWith("auth_expires="));
+    const expires =
+      expiresCookie?.split("=")[1] || localStorage.getItem("auth_expires");
+
     if (expires) {
       const expiryDate = new Date(expires);
       if (expiryDate < new Date()) {
@@ -165,9 +187,13 @@ export const authService = {
     localStorage.removeItem("auth_expires");
   },
 
-  // Verificar si el token está a punto de expirar (útil para refrescar)
   isTokenExpiringSoon(minutes = 5): boolean {
-    const expires = localStorage.getItem("auth_expires");
+    const expiresCookie = document.cookie
+      .split(";")
+      .find((c) => c.trim().startsWith("auth_expires="));
+    const expires =
+      expiresCookie?.split("=")[1] || localStorage.getItem("auth_expires");
+
     if (!expires) return true;
 
     const expiryDate = new Date(expires);
@@ -175,5 +201,14 @@ export const authService = {
     const diffMinutes = (expiryDate.getTime() - now.getTime()) / (1000 * 60);
 
     return diffMinutes < minutes;
+  },
+
+  async verifyToken(): Promise<boolean> {
+    try {
+      const response = await api.get("/api/auth/verify");
+      return response.status === 200;
+    } catch (error) {
+      return false;
+    }
   },
 };
