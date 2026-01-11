@@ -91,16 +91,19 @@ export const columns: ColumnDef<Puesto>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-              <DropdownMenuItem
+              <DropdownMenuSeparator />
+              {/* <DropdownMenuItem
                 onClick={() =>
                   navigator.clipboard.writeText(puesto.idPuesto.toString())
                 }
               >
                 Copiar ID
+              </DropdownMenuItem> */}
+              <DropdownMenuItem>Ver</DropdownMenuItem>
+              <DropdownMenuItem>Editar</DropdownMenuItem>
+              <DropdownMenuItem className="text-red-500">
+                Eliminar
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Ver detalles</DropdownMenuItem>
-              <DropdownMenuItem>Editar puesto</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
