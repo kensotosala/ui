@@ -37,9 +37,11 @@ export const departamentoService = {
   // Actualizar departamento existente
   update: async (
     id: number,
-    departamento: Pick<
-      Departamento,
-      "nombreDepartamento" | "descripcion" | "idJefeDepartamento" | "estado"
+    departamento: Partial<
+      Pick<
+        Departamento,
+        "nombreDepartamento" | "descripcion" | "idJefeDepartamento" | "estado"
+      >
     >
   ): Promise<Departamento> => {
     const { data } = await axios.put<Departamento>(

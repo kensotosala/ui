@@ -1,3 +1,4 @@
+import { DepartamentosTable } from "@/app/features/departamentos/components/data-table/page";
 import React from "react";
 
 const DepartamentosPage = () => {

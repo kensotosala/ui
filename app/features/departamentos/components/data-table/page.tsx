@@ -5,9 +5,19 @@ import { useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import TableHeader from "@/components/TableHeader";
+import { useDepartamentoMutations } from "../../hooks/useDepartamentoMutation";
+import { Departamento } from "../../types";
+import { columns } from "./columns";
+import { DepartamentoCreateDialog } from "./dialogs/create-dialog";
+import { Button } from "@/components/ui/button";
+import { DataTable } from "./data-table";
+import { DepartamentoDetailsDialog } from "./dialogs/detail-dialog";
+import { DepartamentoEditDialog } from "./dialogs/edit-dialog";
+import { DepartamentoDeleteDialog } from "./dialogs/delete-dialog";
+import { useDepartamentos } from "../../hooks/useDepartamentos";
 
 export function DepartamentosTable() {
-  const { departamentos, isLoading, refetch } = useDepartamentosQuery();
+  const { departamentos, isLoading, refetch } = useDepartamentos();
   const {
     createDepartamento,
     updateDepartamento,
@@ -38,11 +48,14 @@ export function DepartamentosTable() {
 
   const handleEdit = async (departamento: Departamento) => {
     try {
-      await updateDepartamento(departamento.idDepartamento, {
-        nombreDepartamento: departamento.nombreDepartamento,
-        descripcion: departamento.descripcion,
-        idJefeDepartamento: departamento.idJefeDepartamento,
-        estado: departamento.estado,
+      await updateDepartamento({
+        id: departamento.idDepartamento,
+        departamento: {
+          nombreDepartamento: departamento.nombreDepartamento,
+          descripcion: departamento.descripcion,
+          idJefeDepartamento: departamento.idJefeDepartamento,
+          estado: departamento.estado,
+        },
       });
       setOpenEdit(false);
       setSelectedDepartamento(null);

@@ -4,4 +4,6 @@ export type Departamento = {
   descripcion: string;
   idJefeDepartamento: number | null;
   estado: "ACTIVO" | "INACTIVO";
+  fechaCreacion?: string;
+  fechaModificacion?: string | null;
 };
