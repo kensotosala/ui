@@ -9,6 +9,7 @@ import { PuestoEditDialog } from "./edit-dialog";
 import { usePuestoMutations } from "../../hooks/usePuestoMutation";
 import { PuestoDeleteDialog } from "./delete-dialog";
 import { Button } from "@/components/ui/button";
+import { DataTable } from "./data-table";
 
 export default function PuestosTable() {
   const { puestos } = usePuestos();
@@ -85,11 +86,7 @@ export default function PuestosTable() {
     <>
       <div className="container mx-auto py-10">
         <div className="flex items-center mb-4">
-          <h1 className="text-3xl font-semibold">Lista de Puestos</h1>
-
-          <Button className="ml-auto" onClick={() => setOpenCreate(true)}>
-            Agregar Puesto
-          </Button>
+          <DataTable columns={columns} data={puestos} />
         </div>
       </div>
 
@@ -123,13 +120,6 @@ export default function PuestosTable() {
             console.error(error);
           }
         }}
-      />
-
-      <PuestoDeleteDialog
-        open={openCreate}
-        onOpenChange={setOpenCreate}
-        onSave={handleCreate}
-        isLoading={isCreating}
       />
     </>
   );

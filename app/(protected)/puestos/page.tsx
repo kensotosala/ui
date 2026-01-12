@@ -6,7 +6,7 @@ import { useState } from "react";
 import PuestosTable from "@/app/features/puestos/components/puestosTable/page";
 import TableHeader from "@/components/TableHeader";
 import { usePuestos } from "@/app/features/puestos/hooks/usePuestos";
-import { CreatePuestoDialog } from "@/app/features/puestos/components/puestosTable/create-dialog";
+import { PuestoCreateDialog } from "@/app/features/puestos/components/puestosTable/create-dialog";
 
 const PuestosPage = () => {
   const [openCreate, setOpenCreate] = useState(false);
@@ -36,7 +36,7 @@ const PuestosPage = () => {
         <PuestosTable />
       </div>
 
-      <CreatePuestoDialog
+      <PuestoCreateDialog
         open={openCreate}
         onOpenChange={setOpenCreate}
         onCreate={handleCreate}
