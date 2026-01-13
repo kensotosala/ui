@@ -3,10 +3,10 @@
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Empleado } from "../../../types";
@@ -15,23 +15,18 @@ interface EmpleadoDeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   empleado: Empleado | null;
-  onConfirm: (id: number) => Promise<void>;
-  isDeleting?: boolean;
+  isDeleting: boolean;
+  onConfirm: (id: number) => void;
 }
 
 export function EmpleadoDeleteDialog({
   open,
   onOpenChange,
   empleado,
+  isDeleting,
   onConfirm,
-  isDeleting = false,
 }: EmpleadoDeleteDialogProps) {
-  if (!empleado || !empleado.id) return null;
-
-  const handleDelete = async () => {
-    await onConfirm(empleado.id!);
-    onOpenChange(false);
-  };
+  if (!empleado) return null;
 
   const nombreCompleto = [
     empleado.nombre,
@@ -41,35 +36,49 @@ export function EmpleadoDeleteDialog({
     .filter(Boolean)
     .join(" ");
 
+  const handleConfirm = () => {
+    if (empleado.idEmpleado !== undefined) {
+      onConfirm(empleado.idEmpleado);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-red-600">Eliminar empleado</DialogTitle>
-
-          <DialogDescription className="space-y-2">
-            <p>
-              ¿Estás seguro de que deseas eliminar al empleado{" "}
-              <span className="font-medium">{nombreCompleto}</span>?
-            </p>
-            <p className="text-sm text-red-500">
-              Esta acción no se puede deshacer.
-            </p>
+          <DialogTitle>Eliminar Empleado</DialogTitle>
+          <DialogDescription>
+            ¿Está seguro de que desea eliminar este empleado? Esta acción no se
+            puede deshacer.
           </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="flex justify-end gap-2">
+        <div className="py-4">
+          <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg space-y-2">
+            <p className="text-sm">
+              <span className="font-medium">Nombre:</span> {nombreCompleto}
+            </p>
+            <p className="text-sm">
+              <span className="font-medium">Código:</span>{" "}
+              {empleado.codigoEmpleado}
+            </p>
+            <p className="text-sm">
+              <span className="font-medium">Email:</span> {empleado.email}
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter>
           <Button
-            variant="secondary"
+            variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isDeleting}
           >
             Cancelar
           </Button>
-
           <Button
             variant="destructive"
-            onClick={handleDelete}
+            onClick={handleConfirm}
             disabled={isDeleting}
           >
             {isDeleting ? "Eliminando..." : "Eliminar"}
