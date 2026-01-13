@@ -89,10 +89,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
       (route) => pathname === route || pathname?.startsWith(`${route}/`)
     );
 
-    if (isPublicRoute) return;
-
-    if (!authService.isAuthenticated()) {
+    if (!isPublicRoute && !authService.isAuthenticated()) {
       router.push("/login");
+    }
+
+    // Si está autenticado y está en login, redirigir al dashboard
+    if (
+      isPublicRoute &&
+      authService.isAuthenticated() &&
+      pathname === "/login"
+    ) {
+      router.push("/");
     }
   }, [pathname, isLoading, router]);
 

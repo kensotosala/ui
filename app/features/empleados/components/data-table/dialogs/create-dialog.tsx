@@ -11,8 +11,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Empleado } from "../../../types";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useDepartamentos } from "@/app/features/departamentos/hooks/useDepartamentos";
+import { usePuestos } from "@/app/features/puestos/hooks/usePuestos";
+import { ROLES } from "@/constants/roles";
+import { Separator } from "@/components/ui/separator";
+import { ChevronDownIcon } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
-type EmpleadoCreateForm = Omit<Empleado, "id" | "estado"> & {
+type EmpleadoCreateForm = Omit<Empleado, "id" | "idEmpleado" | "estado"> & {
   nombreUsuario: string;
   password: string;
 };
@@ -48,6 +68,14 @@ export function EmpleadoCreateDialog({
 }: EmpleadoCreateDialogProps) {
   const [formData, setFormData] = useState<EmpleadoCreateForm>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { departamentos } = useDepartamentos();
+  const { puestos } = usePuestos();
+  const [openPopover, setOpenPopover] = useState(false);
+  const [date, setDate] = useState<Date | undefined>(undefined);
+
+  const formatDateToISO = (date: Date): string => {
+    return date.toISOString().split("T")[0];
+  };
 
   const handleChange = <K extends keyof EmpleadoCreateForm>(
     field: K,
@@ -61,8 +89,12 @@ export function EmpleadoCreateDialog({
     setIsSubmitting(true);
 
     try {
+      console.log("📦 Payload enviado al backend:", formData);
+
       await onCreate(formData);
+
       setFormData(initialFormData);
+      setDate(undefined);
       onOpenChange(false);
     } catch (error) {
       console.error("Error al crear empleado:", error);
@@ -75,13 +107,14 @@ export function EmpleadoCreateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Crear nuevo empleado</DialogTitle>
+          <DialogTitle className="mb-2">Crear Nuevo Empleado</DialogTitle>
+          <Separator />
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Código</Label>
+              <Label className="mb-2">Código</Label>
               <Input
                 value={formData.codigoEmpleado}
                 onChange={(e) => handleChange("codigoEmpleado", e.target.value)}
@@ -90,7 +123,7 @@ export function EmpleadoCreateDialog({
             </div>
 
             <div>
-              <Label>Email</Label>
+              <Label className="mb-2">Email</Label>
               <Input
                 type="email"
                 value={formData.email}
@@ -100,7 +133,7 @@ export function EmpleadoCreateDialog({
             </div>
 
             <div>
-              <Label>Nombre</Label>
+              <Label className="mb-2">Nombre</Label>
               <Input
                 value={formData.nombre}
                 onChange={(e) => handleChange("nombre", e.target.value)}
@@ -109,7 +142,7 @@ export function EmpleadoCreateDialog({
             </div>
 
             <div>
-              <Label>Primer apellido</Label>
+              <Label className="mb-2">Primer apellido</Label>
               <Input
                 value={formData.primerApellido}
                 onChange={(e) => handleChange("primerApellido", e.target.value)}
@@ -118,7 +151,7 @@ export function EmpleadoCreateDialog({
             </div>
 
             <div>
-              <Label>Segundo apellido</Label>
+              <Label className="mb-2">Segundo apellido</Label>
               <Input
                 value={formData.segundoApellido ?? ""}
                 onChange={(e) =>
@@ -128,7 +161,7 @@ export function EmpleadoCreateDialog({
             </div>
 
             <div>
-              <Label>Teléfono</Label>
+              <Label className="mb-2">Teléfono</Label>
               <Input
                 value={formData.telefono}
                 onChange={(e) => handleChange("telefono", e.target.value)}
@@ -136,31 +169,135 @@ export function EmpleadoCreateDialog({
             </div>
 
             <div>
-              <Label>Departamento ID</Label>
-              <Input
-                type="number"
-                value={formData.departamentoId}
-                onChange={(e) =>
-                  handleChange("departamentoId", Number(e.target.value))
-                }
-                required
-              />
+              <Label htmlFor="date" className="px-1 mb-2">
+                Fecha de contratación
+              </Label>
+              <Popover open={openPopover} onOpenChange={setOpenPopover}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    id="date"
+                    className="justify-between font-normal w-full text-muted-foreground"
+                  >
+                    {date ? formatDateToISO(date) : "Selecciona una fecha"}
+                    <ChevronDownIcon />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto overflow-hidden p-0"
+                  align="start"
+                >
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    captionLayout="dropdown"
+                    onSelect={(selectedDate) => {
+                      if (!selectedDate) return;
+
+                      setDate(selectedDate);
+
+                      handleChange(
+                        "fechaContratacion",
+                        formatDateToISO(selectedDate)
+                      );
+
+                      setOpenPopover(false);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>
-              <Label>Puesto ID</Label>
-              <Input
-                type="number"
-                value={formData.puestoId}
-                onChange={(e) =>
-                  handleChange("puestoId", Number(e.target.value))
+              <Label htmlFor="departamento" className="mb-2">
+                Departamento
+              </Label>
+              <Select
+                value={
+                  formData.departamentoId
+                    ? formData.departamentoId.toString()
+                    : undefined
                 }
-                required
-              />
+                onValueChange={(value) =>
+                  handleChange("departamentoId", Number(value))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona un departamento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Departamentos</SelectLabel>
+                    {departamentos.map((dep) => (
+                      <SelectItem
+                        key={dep.idDepartamento}
+                        value={dep.idDepartamento.toString()}
+                      >
+                        {dep.nombreDepartamento}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
-              <Label>Salario base</Label>
+              <Label htmlFor="departamento" className="mb-2">
+                Puesto
+              </Label>
+              <Select
+                value={
+                  formData.puestoId ? formData.puestoId.toString() : undefined
+                }
+                onValueChange={(value) =>
+                  handleChange("puestoId", Number(value))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona un puesto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Puestos</SelectLabel>
+                    {puestos.map((puesto) => (
+                      <SelectItem
+                        key={puesto.idPuesto}
+                        value={puesto.idPuesto.toString()}
+                      >
+                        {puesto.nombrePuesto}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="departamento" className="mb-2">
+                Rol
+              </Label>
+              <Select
+                value={formData.rolId ? formData.rolId.toString() : undefined}
+                onValueChange={(value) => handleChange("rolId", Number(value))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona un rol" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Roles</SelectLabel>
+                    {ROLES.map((rol) => (
+                      <SelectItem key={rol.id} value={rol.id.toString()}>
+                        {rol.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="mb-2">Salario base</Label>
               <Input
                 type="number"
                 value={formData.salarioBase}
@@ -171,7 +308,7 @@ export function EmpleadoCreateDialog({
             </div>
 
             <div>
-              <Label>Usuario</Label>
+              <Label className="mb-2">Usuario</Label>
               <Input
                 value={formData.nombreUsuario}
                 onChange={(e) => handleChange("nombreUsuario", e.target.value)}
@@ -180,7 +317,7 @@ export function EmpleadoCreateDialog({
             </div>
 
             <div>
-              <Label>Contraseña</Label>
+              <Label className="mb-2">Contraseña</Label>
               <Input
                 type="password"
                 value={formData.password}

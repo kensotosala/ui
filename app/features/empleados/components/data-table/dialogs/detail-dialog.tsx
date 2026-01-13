@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Empleado } from "../../../types";
+import { usePuestos } from "@/app/features/puestos/hooks/usePuestos";
+import { useDepartamentos } from "@/app/features/departamentos/hooks/useDepartamentos";
 
 interface EmpleadoDetailsDialogProps {
   open: boolean;
@@ -20,6 +22,9 @@ export function EmpleadoDetailsDialog({
   onOpenChange,
   empleado,
 }: EmpleadoDetailsDialogProps) {
+  const { puestos } = usePuestos();
+  const { departamentos } = useDepartamentos();
+
   if (!empleado) return null;
 
   const nombreCompleto = [
@@ -29,6 +34,16 @@ export function EmpleadoDetailsDialog({
   ]
     .filter(Boolean)
     .join(" ");
+
+  // Buscar el nombre del departamento
+  const departamento = departamentos.find(
+    (dep) => dep.idDepartamento === empleado.departamentoId
+  );
+  const nombreDepartamento = departamento?.nombreDepartamento ?? "No asignado";
+
+  // Buscar el nombre del puesto
+  const puesto = puestos.find((p) => p.idPuesto === empleado.puestoId);
+  const nombrePuesto = puesto?.nombrePuesto ?? "No asignado";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -41,7 +56,7 @@ export function EmpleadoDetailsDialog({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-muted-foreground">ID</p>
-              <p className="font-medium">{empleado.id ?? "-"}</p>
+              <p className="font-medium">{empleado.idEmpleado ?? "-"}</p>
             </div>
 
             <div>
@@ -74,19 +89,19 @@ export function EmpleadoDetailsDialog({
             </div>
 
             <div>
-              <p className="text-muted-foreground">Departamento ID</p>
-              <p>{empleado.departamentoId}</p>
+              <p className="text-muted-foreground">Departamento</p>
+              <p>{nombreDepartamento}</p>
             </div>
 
             <div>
-              <p className="text-muted-foreground">Puesto ID</p>
-              <p>{empleado.puestoId}</p>
+              <p className="text-muted-foreground">Puesto</p>
+              <p>{nombrePuesto}</p>
             </div>
 
-            <div>
+            {/* <div>
               <p className="text-muted-foreground">Jefe inmediato</p>
               <p>{empleado.jefeInmediatoId ?? "-"}</p>
-            </div>
+            </div> */}
 
             <div>
               <p className="text-muted-foreground">Fecha de contratación</p>

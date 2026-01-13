@@ -20,3 +20,21 @@ export interface Empleado {
   password?: string;
   rolId: number;
 }
+
+export interface EmpleadoCreateDTO {
+  codigoEmpleado: string;
+  nombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  email: string;
+  telefono: string;
+  fechaContratacion: string; // YYYY-MM-DD
+  puestoId: number;
+  departamentoId: number;
+  jefeInmediatoId?: number;
+  salarioBase: number;
+  tipoContrato: "FIJO" | "TEMPORAL" | "PRACTICAS";
+  nombreUsuario: string;
+  password: string;
+  rolId: number;
+}

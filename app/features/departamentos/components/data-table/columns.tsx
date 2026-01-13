@@ -30,13 +30,13 @@ export const columns = (
     accessorKey: "descripcion",
     header: "Descripción",
   },
-  {
-    accessorKey: "idJefeDepartamento",
-    header: "Jefe",
-    cell: ({ getValue }) => (
-      <div className="text-center">{getValue<number | null>() ?? "-"}</div>
-    ),
-  },
+  // {
+  //   accessorKey: "idJefeDepartamento",
+  //   header: "Jefe",
+  //   cell: ({ getValue }) => (
+  //     <div className="text-center">{getValue<number | null>() ?? "-"}</div>
+  //   ),
+  // },
   {
     accessorKey: "estado",
     header: "Estado",
@@ -44,7 +44,7 @@ export const columns = (
       const estado = getValue<"ACTIVO" | "INACTIVO">();
       return (
         <div
-          className={`text-center font-medium ${
+          className={`font-medium ${
             estado === "ACTIVO" ? "text-green-600" : "text-red-500"
           }`}
         >
@@ -55,7 +55,7 @@ export const columns = (
   },
   {
     id: "actions",
-    header: "Acciones",
+    header: () => <div className="text-center">Acciones</div>,
     cell: ({ row }) => {
       const departamento = row.original;
 
