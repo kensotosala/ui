@@ -33,7 +33,7 @@ export const useAsistenciaMutations = () => {
       queryClient.invalidateQueries({
         queryKey: asistenciaKeys.hoy(empleadoIdString),
       });
-      toast.success("✅ Asistencia registrada correctamente", {
+      toast.success("Asistencia registrada correctamente", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -58,7 +58,7 @@ export const useAsistenciaMutations = () => {
       queryClient.invalidateQueries({
         queryKey: asistenciaKeys.empleado(data.empleadoId),
       });
-      toast.success("✅ Asistencia actualizada correctamente", {
+      toast.success("Asistencia actualizada correctamente", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -75,7 +75,7 @@ export const useAsistenciaMutations = () => {
     mutationFn: (id: string) => asistenciaService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["asistencias"] });
-      toast.success("✅ Asistencia eliminada correctamente", {
+      toast.success("Asistencia eliminada correctamente", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -106,7 +106,7 @@ export const useAsistenciaMutations = () => {
       queryClient.invalidateQueries({
         queryKey: asistenciaKeys.hoy(variables.empleadoId),
       });
-      toast.success("✅ Entrada/Salida registrada correctamente", {
+      toast.success("Entrada/Salida registrada correctamente", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -137,7 +137,7 @@ export const useAsistenciaMutations = () => {
       queryClient.invalidateQueries({
         queryKey: asistenciaKeys.empleado(data.empleadoId),
       });
-      toast.success("✅ Estado actualizado correctamente", {
+      toast.success("Estado actualizado correctamente", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -169,7 +169,7 @@ export const useAsistenciaMutations = () => {
       queryClient.invalidateQueries({
         queryKey: asistenciaKeys.empleado(data.empleadoId),
       });
-      toast.success("✅ Justificación enviada correctamente", {
+      toast.success("Justificación enviada correctamente", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -190,7 +190,7 @@ export const useAsistenciaMutations = () => {
       queryClient.invalidateQueries({
         queryKey: asistenciaKeys.empleado(data.empleadoId),
       });
-      toast.success("✅ Justificación aprobada correctamente", {
+      toast.success("Justificación aprobada correctamente", {
         position: "top-right",
         autoClose: 3000,
       });

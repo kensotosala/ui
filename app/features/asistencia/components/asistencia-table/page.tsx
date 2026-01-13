@@ -1,4 +1,3 @@
-// components/asistencias/AsistenciasTable.tsx
 "use client";
 
 import { useState } from "react";
@@ -14,7 +13,6 @@ import {
   FiltrosAsistencia,
 } from "../../types";
 import { useAsistencias } from "../../hooks/useAsistencia";
-import { toast } from "react-toastify";
 import { AsistenciaCreateDialog } from "./dialogs/create-dialog";
 import { AsistenciaDetailsDialog } from "./dialogs/detail-dialog";
 import { AsistenciaEditDialog } from "./dialogs/edit-dialog";
@@ -55,10 +53,8 @@ export function AsistenciasTable() {
       await crearAsistencia(data);
       setOpenCreate(false);
       refetch();
-      toast.success("Asistencia registrada correctamente");
     } catch (error) {
       console.error("Error al crear asistencia:", error);
-      toast.error("Error al registrar asistencia");
     }
   };
 
@@ -68,10 +64,8 @@ export function AsistenciasTable() {
       setOpenEdit(false);
       setSelectedAsistencia(null);
       refetch();
-      toast.success("Asistencia actualizada correctamente");
     } catch (error) {
       console.error("Error al editar asistencia:", error);
-      toast.error("Error al actualizar asistencia");
     }
   };
 
@@ -81,10 +75,8 @@ export function AsistenciasTable() {
       setOpenDelete(false);
       setSelectedAsistencia(null);
       refetch();
-      toast.success("Asistencia eliminada correctamente");
     } catch (error) {
       console.error("Error al eliminar asistencia:", error);
-      toast.error("Error al eliminar asistencia");
     }
   };
 
@@ -101,10 +93,8 @@ export function AsistenciasTable() {
       setOpenJustificar(false);
       setSelectedAsistencia(null);
       refetch();
-      toast.success("Justificación enviada correctamente");
     } catch (error) {
       console.error("Error al justificar:", error);
-      toast.error("Error al enviar justificación");
     }
   };
 
@@ -112,10 +102,8 @@ export function AsistenciasTable() {
     try {
       await aprobarJustificacion(asistencia.id);
       refetch();
-      toast.success("Justificación aprobada correctamente");
     } catch (error) {
       console.error("Error al aprobar:", error);
-      toast.error("Error al aprobar justificación");
     }
   };
 
