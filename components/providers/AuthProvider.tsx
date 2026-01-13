@@ -39,7 +39,6 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-// Rutas públicas (no requieren autenticación)
 const PUBLIC_ROUTES = ["/login", "/forgot-password", "/reset-password"];
 
 export function AuthProvider({ children }: AuthProviderProps) {
@@ -48,40 +47,67 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Función para cargar usuario desde token
+  // Función mejorada para validar y cargar usuario
   const loadUserFromToken = useCallback(() => {
     const token = authService.getToken();
-    if (token && authService.isAuthenticated()) {
-      const userData = authService.decodeJWT(token);
-      if (userData) {
-        setUser(userData);
-        return true;
-      }
+
+    // Validación explícita: debe existir token Y ser válido
+    if (!token) {
+      setUser(null);
+      return false;
     }
-    setUser(null);
-    return false;
+
+    if (!authService.isAuthenticated()) {
+      setUser(null);
+      authService.logout(); // Limpia token inválido
+      return false;
+    }
+
+    const userData = authService.decodeJWT(token);
+    if (!userData) {
+      setUser(null);
+      authService.logout(); // Limpia token corrupto
+      return false;
+    }
+
+    setUser(userData);
+    return true;
   }, []);
 
-  // Inicialización al montar
+  // Inicialización
   useEffect(() => {
-    const initializeAuth = async () => {
-      setIsLoading(true);
-      loadUserFromToken();
+    const initializeAuth = () => {
+      const hasValidAuth = loadUserFromToken();
       setIsLoading(false);
-    };
-    initializeAuth();
-  }, [loadUserFromToken]);
 
-  // Escuchar cambios en localStorage para sincronización entre pestañas
-  useEffect(() => {
-    const handleStorageChange = () => {
-      loadUserFromToken();
+      // Redirigir inmediatamente si no hay autenticación válida
+      if (!hasValidAuth && !PUBLIC_ROUTES.includes(pathname || "")) {
+        router.replace("/login");
+      }
     };
+
+    initializeAuth();
+  }, [loadUserFromToken, pathname, router]);
+
+  // Sincronización entre pestañas
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      // Solo reaccionar si cambió el token
+      if (e.key === "authToken" || e.key === null) {
+        const hasValidAuth = loadUserFromToken();
+
+        // Si se eliminó el token, redirigir a login
+        if (!hasValidAuth && !PUBLIC_ROUTES.includes(pathname || "")) {
+          router.replace("/login");
+        }
+      }
+    };
+
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, [loadUserFromToken]);
+  }, [loadUserFromToken, pathname, router]);
 
-  // Protección de rutas
+  // Protección de rutas - useEffect separado y simplificado
   useEffect(() => {
     if (isLoading) return;
 
@@ -89,38 +115,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
       (route) => pathname === route || pathname?.startsWith(`${route}/`)
     );
 
-    if (!isPublicRoute && !authService.isAuthenticated()) {
-      router.push("/login");
+    const token = authService.getToken();
+    const isValidAuth = token && authService.isAuthenticated();
+
+    // Caso 1: Ruta privada sin autenticación válida -> Login
+    if (!isPublicRoute && !isValidAuth) {
+      router.replace("/login");
+      return;
     }
 
-    // Si está autenticado y está en login, redirigir al dashboard
-    if (
-      isPublicRoute &&
-      authService.isAuthenticated() &&
-      pathname === "/login"
-    ) {
-      router.push("/");
+    // Caso 2: Usuario autenticado en página de login -> Dashboard
+    if (pathname === "/login" && isValidAuth) {
+      router.replace("/");
+      return;
     }
-  }, [pathname, isLoading, router]);
+  }, [pathname, isLoading, router, user]);
 
-  // Función de login
   const login = async (credentials: LoginCredentials) => {
     try {
       setIsLoading(true);
       await authService.login(credentials);
-      loadUserFromToken();
-    } catch (error) {
-      throw error;
+      const success = loadUserFromToken();
+
+      if (success) {
+        router.replace("/");
+      } else {
+        throw new Error("Error al cargar datos del usuario");
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Función de logout
   const logout = async () => {
+    setIsLoading(true);
     await authService.logout();
     setUser(null);
-    router.push("/login");
+    router.replace("/login");
+    setIsLoading(false);
   };
 
   const checkRole = (role: string): boolean => {
@@ -131,7 +163,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return user?.roles.some((role) => roles.includes(role)) || false;
   };
 
-  // Mostrar loader mientras se verifica autenticación
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -147,7 +178,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: !!user,
+        isAuthenticated: !!user && !!authService.getToken(),
         isLoading,
         login,
         logout,
