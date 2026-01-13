@@ -1,20 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export type TipoContrato = "FIJO" | "TEMPORAL" | "PRACTICAS";
 export type EstadoEmpleado = "ACTIVO" | "INACTIVO";
 
 export interface Empleado {
-  fechaModificacion: any;
-  notas: any;
-  observaciones: any;
-  fechaCreacion: any;
-  id?: number;
+  idEmpleado: number;
   codigoEmpleado: string;
   nombre: string;
   primerApellido: string;
   segundoApellido?: string;
   email: string;
   telefono: string;
-  fechaContratacion: string; // YYYY-MM-DD
+  fechaContratacion: string;
   puestoId: number;
   departamentoId: number;
   jefeInmediatoId?: number;

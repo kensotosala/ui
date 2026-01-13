@@ -52,35 +52,4 @@ export const empleadoService = {
   delete: async (id: number): Promise<void> => {
     await axios.delete(`${API_BASE_URL}/Empleados/${id}`);
   },
-
-  // Métodos adicionales útiles para empleados
-  buscarPorCodigo: async (codigo: string): Promise<Empleado | null> => {
-    try {
-      // Normalmente el backend tendría un endpoint para esto
-      const empleados = await empleadoService.getAll();
-      return empleados.find((e) => e.codigoEmpleado === codigo) || null;
-    } catch {
-      return null;
-    }
-  },
-
-  buscarPorDepartamento: async (
-    departamentoId: number
-  ): Promise<Empleado[]> => {
-    try {
-      const empleados = await empleadoService.getAll();
-      return empleados.filter((e) => e.departamentoId === departamentoId);
-    } catch {
-      return [];
-    }
-  },
-
-  buscarPorPuesto: async (puestoId: number): Promise<Empleado[]> => {
-    try {
-      const empleados = await empleadoService.getAll();
-      return empleados.filter((e) => e.puestoId === puestoId);
-    } catch {
-      return [];
-    }
-  },
 };

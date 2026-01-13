@@ -42,6 +42,11 @@ const items = [
     url: "/departamentos",
     icon: Building2,
   },
+  {
+    title: "Empleados",
+    url: "/empleados",
+    icon: User2,
+  },
 ];
 
 export function AppSidebar() {
