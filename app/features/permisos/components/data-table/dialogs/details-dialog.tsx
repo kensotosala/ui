@@ -8,80 +8,70 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { HoraExtra, EstadoSolicitud } from "../../../types";
+import { Permiso, EstadoPermiso } from "../../../types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   Calendar,
-  Clock,
   User,
   FileText,
   CheckCircle,
-  Timer,
+  DollarSign,
+  MessageSquare,
 } from "lucide-react";
 
-interface HoraExtraDetailsDialogProps {
+interface PermisoDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  horaExtra: HoraExtra | null;
+  permiso: Permiso | null;
 }
 
 /**
  * Configuración del badge según estado
  */
-const getEstadoBadge = (estado: EstadoSolicitud | string | null) => {
+const getEstadoBadge = (estado: string | null) => {
   const badges: Record<
-    EstadoSolicitud,
+    EstadoPermiso,
     {
       variant: "default" | "secondary" | "destructive" | "outline";
       className: string;
     }
   > = {
-    [EstadoSolicitud.PENDIENTE]: {
+    [EstadoPermiso.PENDIENTE]: {
       variant: "secondary",
       className: "bg-yellow-100 text-yellow-800",
     },
-    [EstadoSolicitud.APROBADA]: {
+    [EstadoPermiso.APROBADA]: {
       variant: "default",
       className: "bg-green-100 text-green-800",
     },
-    [EstadoSolicitud.RECHAZADA]: {
+    [EstadoPermiso.RECHAZADA]: {
       variant: "destructive",
       className: "bg-red-100 text-red-800",
     },
   };
 
   if (!estado || !(estado in badges)) {
-    return badges[EstadoSolicitud.PENDIENTE];
+    return badges[EstadoPermiso.PENDIENTE];
   }
 
-  return badges[estado as EstadoSolicitud];
+  return badges[estado as EstadoPermiso];
 };
 
-/**
- * Formatear minutos a horas y minutos
- */
-const formatearMinutos = (minutos: number): string => {
-  if (!minutos) return "-";
-  const horas = Math.floor(minutos / 60);
-  const mins = minutos % 60;
-  return `${horas}h ${mins}m`;
-};
-
-export function HoraExtraDetailsDialog({
+export function PermisoDetailsDialog({
   open,
   onOpenChange,
-  horaExtra,
-}: HoraExtraDetailsDialogProps) {
-  if (!horaExtra) return null;
+  permiso,
+}: PermisoDetailsDialogProps) {
+  if (!permiso) return null;
 
-  const badgeConfig = getEstadoBadge(horaExtra.estadoSolicitud);
+  const badgeConfig = getEstadoBadge(permiso.estadoSolicitud);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Detalle de Solicitud de Horas Extra</DialogTitle>
+          <DialogTitle>Detalle de Solicitud de Permiso</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -94,16 +84,8 @@ export function HoraExtraDetailsDialog({
             <Separator />
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-muted-foreground">Nombre Completo</p>
-                <p className="text-sm font-medium">
-                  {horaExtra.nombreEmpleado}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Código</p>
-                <p className="text-sm font-medium">
-                  {horaExtra.codigoEmpleado}
-                </p>
+                <p className="text-xs text-muted-foreground">ID Empleado</p>
+                <p className="text-sm font-medium">#{permiso.empleadoId}</p>
               </div>
             </div>
           </section>
@@ -122,7 +104,7 @@ export function HoraExtraDetailsDialog({
                 </p>
                 <p className="text-sm font-medium">
                   {format(
-                    new Date(horaExtra.fechaSolicitud),
+                    new Date(permiso.fechaSolicitud),
                     "dd 'de' MMMM 'de' yyyy",
                     { locale: es },
                   )}
@@ -135,30 +117,18 @@ export function HoraExtraDetailsDialog({
                   variant={badgeConfig.variant}
                   className={badgeConfig.className}
                 >
-                  {horaExtra.estadoSolicitud}
+                  {permiso.estadoSolicitud || EstadoPermiso.PENDIENTE}
                 </Badge>
               </div>
 
               <div>
-                <p className="text-xs text-muted-foreground">Fecha de Inicio</p>
+                <p className="text-xs text-muted-foreground">
+                  Fecha del Permiso
+                </p>
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <p className="text-sm">
-                    {format(
-                      new Date(horaExtra.fechaInicio),
-                      "dd/MM/yyyy HH:mm",
-                      { locale: es },
-                    )}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-xs text-muted-foreground">Fecha de Fin</p>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <p className="text-sm">
-                    {format(new Date(horaExtra.fechaFin), "dd/MM/yyyy HH:mm", {
+                  <Calendar className="h-4 w-4 text-blue-500" />
+                  <p className="text-sm font-medium">
+                    {format(new Date(permiso.fechaPermiso), "dd/MM/yyyy", {
                       locale: es,
                     })}
                   </p>
@@ -166,18 +136,17 @@ export function HoraExtraDetailsDialog({
               </div>
 
               <div>
-                <p className="text-xs text-muted-foreground">Horas Totales</p>
-                <div className="flex items-center gap-2 text-blue-600">
-                  <Timer className="h-4 w-4" />
-                  <p className="font-medium">
-                    {formatearMinutos(horaExtra.horasTotales)}
-                  </p>
+                <p className="text-xs text-muted-foreground">
+                  Con Goce de Salario
+                </p>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-green-600" />
+                  {permiso.conGoceSalario ? (
+                    <Badge className="bg-blue-100 text-blue-800">Sí</Badge>
+                  ) : (
+                    <Badge variant="outline">No</Badge>
+                  )}
                 </div>
-              </div>
-
-              <div>
-                <p className="text-xs text-muted-foreground">Tipo</p>
-                <Badge variant="outline">{horaExtra.tipoHoraExtra}</Badge>
               </div>
             </div>
           </section>
@@ -190,12 +159,12 @@ export function HoraExtraDetailsDialog({
             </div>
             <Separator />
             <p className="text-sm bg-gray-50 p-3 rounded-md">
-              {horaExtra.motivo}
+              {permiso.motivo}
             </p>
           </section>
 
           {/* Información de Aprobación */}
-          {(horaExtra.nombreJefe || horaExtra.fechaAprobacion) && (
+          {(permiso.jefeApruebaId || permiso.fechaAprobacion) && (
             <section className="space-y-3">
               <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                 <CheckCircle className="h-4 w-4" />
@@ -204,32 +173,84 @@ export function HoraExtraDetailsDialog({
               <Separator />
               <div className="bg-blue-50 p-4 rounded-md space-y-3">
                 <div className="grid grid-cols-2 gap-4">
-                  {horaExtra.nombreJefe && (
+                  {permiso.jefeApruebaId && (
                     <div>
                       <p className="text-xs text-muted-foreground">
-                        Aprobado por
+                        {permiso.estadoSolicitud === EstadoPermiso.RECHAZADA
+                          ? "Rechazado por"
+                          : "Aprobado por"}
                       </p>
                       <p className="text-sm font-medium">
-                        {horaExtra.nombreJefe}
+                        Jefe #{permiso.jefeApruebaId}
                       </p>
                     </div>
                   )}
 
-                  {horaExtra.fechaAprobacion && (
+                  {permiso.fechaAprobacion && (
                     <div>
                       <p className="text-xs text-muted-foreground">
-                        Fecha de Aprobación
+                        {permiso.estadoSolicitud === EstadoPermiso.RECHAZADA
+                          ? "Fecha de Rechazo"
+                          : "Fecha de Aprobación"}
                       </p>
                       <p className="text-sm">
                         {format(
-                          new Date(horaExtra.fechaAprobacion),
-                          "dd/MM/yyyy",
+                          new Date(permiso.fechaAprobacion),
+                          "dd/MM/yyyy HH:mm",
                           { locale: es },
                         )}
                       </p>
                     </div>
                   )}
                 </div>
+              </div>
+            </section>
+          )}
+
+          {/* Comentarios de Rechazo */}
+          {permiso.comentariosRechazo &&
+            permiso.estadoSolicitud === EstadoPermiso.RECHAZADA && (
+              <section className="space-y-3">
+                <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                  <MessageSquare className="h-4 w-4" />
+                  <span>Comentarios de Rechazo</span>
+                </div>
+                <Separator />
+                <div className="bg-red-50 p-3 rounded-md border border-red-200">
+                  <p className="text-sm text-red-900">
+                    {permiso.comentariosRechazo}
+                  </p>
+                </div>
+              </section>
+            )}
+
+          {/* Metadatos */}
+          {(permiso.fechaCreacion || permiso.fechaModificacion) && (
+            <section className="space-y-2">
+              <Separator />
+              <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
+                {permiso.fechaCreacion && (
+                  <div>
+                    <span className="font-medium">Creado:</span>{" "}
+                    {format(
+                      new Date(permiso.fechaCreacion),
+                      "dd/MM/yyyy HH:mm",
+                      {
+                        locale: es,
+                      },
+                    )}
+                  </div>
+                )}
+                {permiso.fechaModificacion && (
+                  <div>
+                    <span className="font-medium">Última modificación:</span>{" "}
+                    {format(
+                      new Date(permiso.fechaModificacion),
+                      "dd/MM/yyyy HH:mm",
+                      { locale: es },
+                    )}
+                  </div>
+                )}
               </div>
             </section>
           )}

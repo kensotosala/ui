@@ -56,7 +56,6 @@ export function HoraExtraEditDialog({
   // ✅ Cargar datos cuando cambie horaExtra o se abra el diálogo
   useEffect(() => {
     if (horaExtra && open) {
-      // Convertir las fechas ISO a formato datetime-local
       const fechaInicio = horaExtra.fechaInicio
         ? format(new Date(horaExtra.fechaInicio), "yyyy-MM-dd'T'HH:mm")
         : "";
@@ -68,16 +67,22 @@ export function HoraExtraEditDialog({
         empleadoId: horaExtra.empleadoId,
         fechaInicio,
         fechaFin,
-        tipoHoraExtra: horaExtra.tipoHoraExtra,
+        tipoHoraExtra:
+          horaExtra.tipoHoraExtra === null
+            ? undefined
+            : horaExtra.tipoHoraExtra,
         motivo: horaExtra.motivo,
-        jefeApruebaId: horaExtra.jefeApruebaId ?? undefined,
+        jefeApruebaId:
+          horaExtra.jefeApruebaId === null
+            ? undefined
+            : horaExtra.jefeApruebaId,
       });
     }
   }, [horaExtra, open]);
 
   const handleChange = <K extends keyof ActualizarHoraExtraDTO>(
     field: K,
-    value: ActualizarHoraExtraDTO[K]
+    value: ActualizarHoraExtraDTO[K],
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -260,7 +265,7 @@ export function HoraExtraEditDialog({
                 onValueChange={(value) =>
                   handleChange(
                     "jefeApruebaId",
-                    value ? parseInt(value) : undefined
+                    value ? parseInt(value) : undefined,
                   )
                 }
               >
