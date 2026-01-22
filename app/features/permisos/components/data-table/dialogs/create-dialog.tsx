@@ -103,10 +103,10 @@ export function PermisoCreateDialog({
   const onSubmit = async (values: PermisoFormValues) => {
     try {
       const payload: CrearPermisoDTO = {
-        EmpleadoId: values.EmpleadoId,
-        FechaPemiso: values.FechaPemiso,
-        Motivo: values.Motivo,
-        ConGoceSalario: values.ConGoceSalario,
+        empleadoId: values.EmpleadoId,
+        fechaPermiso: values.FechaPemiso,
+        motivo: values.Motivo,
+        conGoceSalario: values.ConGoceSalario,
       };
 
       await onCreate(payload);

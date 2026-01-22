@@ -182,6 +182,7 @@ export function PermisosTable() {
     handleEliminar,
     handleAprobarClick,
     handleRechazarClick,
+    empleados,
   );
 
   if (isLoading) {

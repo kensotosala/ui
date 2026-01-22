@@ -23,6 +23,7 @@ import { Permiso, EstadoPermiso } from "../../types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { JSX } from "react";
+import { Empleado } from "@/app/features/empleados/types";
 
 /**
  * Obtener color del badge según el estado
@@ -91,30 +92,38 @@ export const columns = (
   onVer: (permiso: Permiso) => void,
   onEditar: (permiso: Permiso) => void,
   onEliminar: (permiso: Permiso) => void,
-  onAprobar?: (permiso: Permiso) => void,
-  onRechazar?: (permiso: Permiso) => void,
+  onAprobar: ((permiso: Permiso) => void) | undefined,
+  onRechazar: ((permiso: Permiso) => void) | undefined,
+  empleados: Empleado[],
 ): ColumnDef<Permiso>[] => [
   {
-    accessorKey: "IdPermiso",
+    accessorKey: "idPermiso",
     header: "ID",
     cell: ({ getValue }) => (
       <div className="font-medium">{getValue<number>()}</div>
     ),
   },
   {
-    accessorKey: "EmpleadoId",
+    accessorKey: "empleadoId",
     header: "Empleado",
     cell: ({ row }) => {
       const permiso = row.original;
+
+      const emp = empleados.find((e) => e.idEmpleado === permiso.empleadoId);
+
       return (
         <div>
-          <p className="font-medium">Empleado #{permiso.empleadoId}</p>
+          <p className="font-medium">
+            {emp
+              ? `${emp.nombre} ${emp.primerApellido} ${emp.segundoApellido}`
+              : `Empleado #${permiso.empleadoId}`}
+          </p>
         </div>
       );
     },
   },
   {
-    accessorKey: "FechaSolicitud",
+    accessorKey: "fechaSolicitud",
     header: "Fecha Solicitud",
     cell: ({ getValue }) => {
       const fecha = getValue<string | null>();
@@ -122,7 +131,7 @@ export const columns = (
     },
   },
   {
-    accessorKey: "FechaPermiso",
+    accessorKey: "fechaPermiso",
     header: "Fecha Permiso",
     cell: ({ getValue }) => {
       const fecha = getValue<string | null>();
@@ -130,7 +139,7 @@ export const columns = (
     },
   },
   {
-    accessorKey: "Motivo",
+    accessorKey: "motivo",
     header: "Motivo",
     cell: ({ getValue }) => {
       const motivo = getValue<string>();
@@ -142,7 +151,7 @@ export const columns = (
     },
   },
   {
-    accessorKey: "ConGoceSalario",
+    accessorKey: "conGoceSalario",
     header: () => <div className="text-center">Con Goce</div>,
     cell: ({ getValue }) => {
       const conGoce = getValue<boolean | null>();
@@ -160,7 +169,7 @@ export const columns = (
     },
   },
   {
-    accessorKey: "EstadoSolicitud",
+    accessorKey: "estadoSolicitud",
     header: "Estado",
     cell: ({ getValue }) => {
       const estado = getValue<string | null>();
@@ -173,7 +182,7 @@ export const columns = (
     },
   },
   {
-    accessorKey: "JefeApruebaId",
+    accessorKey: "jefeApruebaId",
     header: "Aprobado Por",
     cell: ({ row }) => {
       const permiso = row.original;
