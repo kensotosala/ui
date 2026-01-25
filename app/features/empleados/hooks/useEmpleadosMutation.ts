@@ -10,7 +10,7 @@ export const useEmpleadoMutations = () => {
     mutationFn: (data: EmpleadoCreateDTO) => empleadoService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["empleados"] });
-      toast.success("✅ Empleado creado correctamente", {
+      toast.success("Empleado creado correctamente", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -58,7 +58,7 @@ export const useEmpleadoMutations = () => {
 
       toast.error(message, {
         position: "top-center",
-        autoClose: 6000, // Más tiempo para mensajes largos
+        autoClose: 6000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,

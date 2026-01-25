@@ -16,7 +16,7 @@ import { Empleado, EstadoEmpleado } from "../../types";
 export const columns = (
   onVer: (empleado: Empleado) => void,
   onEditar: (empleado: Empleado) => void,
-  onEliminar: (empleado: Empleado) => void
+  onEliminar: (empleado: Empleado) => void,
 ): ColumnDef<Empleado>[] => [
   {
     accessorKey: "idEmpleado",

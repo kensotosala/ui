@@ -8,6 +8,7 @@ import {
   Clock,
   Home,
   Key,
+  Stethoscope,
   User2,
   Users2,
 } from "lucide-react";
@@ -88,6 +89,11 @@ const menuGroups = [
         title: "Permisos",
         url: "/permisos",
         icon: Key,
+      },
+      {
+        title: "Incapacidades",
+        url: "/incapacidades",
+        icon: Stethoscope,
       },
     ],
   },
