@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import TableHeader from "@/components/TableHeader";
-import { DataTable } from "./data-table";
 
 import {
   AsistenciaDetallada,
@@ -12,13 +11,14 @@ import {
   ActualizarAsistenciaDTO,
   FiltrosAsistencia,
 } from "../../types";
-import { useAsistencias } from "../../hooks/use-asistencia-empleado";
-import { AsistenciaCreateDialog } from "./dialogs/create-dialog";
+import { useAsistencias } from "@/app/features/asistencia/hooks/useAsistencia";
+import { columns } from "@/app/features/asistencia/components/asistencia-table/columns";
+import { AsistenciaCreateDialog } from "@/app/features/asistencia/components/asistencia-table/dialogs/create-dialog";
 import { AsistenciaDetailsDialog } from "./dialogs/detail-dialog";
+import { DataTable } from "../../../permisos-empleado/data-table/data-table";
 import { AsistenciaEditDialog } from "./dialogs/edit-dialog";
-import { AsistenciaDeleteDialog } from "./dialogs/delete-dialog";
+import { AsistenciaDeleteDialog } from "@/app/features/asistencia/components/asistencia-table/dialogs/delete-dialog";
 import { AsistenciaJustificarDialog } from "./dialogs/justify-dialog";
-import { columns } from "./columns-empleado";
 
 export function AsistenciasTable() {
   const [filtros] = useState<FiltrosAsistencia>({
@@ -86,7 +86,7 @@ export function AsistenciasTable() {
       tipo: string;
       descripcion: string;
       documentoUrl?: string;
-    }
+    },
   ) => {
     try {
       await justificarAsistencia({ id, justificacion });
@@ -132,7 +132,7 @@ export function AsistenciasTable() {
     handleEditar,
     handleEliminar,
     handleJustificarClick,
-    handleAprobar
+    handleAprobar,
   );
 
   if (isLoading) {

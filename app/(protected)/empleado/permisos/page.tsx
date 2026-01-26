@@ -1,12 +1,13 @@
-import { PermisosTable } from "@/app/features/permisos/components/data-table/page";
-import React from "react";
+"use client";
 
-const PermisosPage = () => {
+import { PermisosEmpleadoTable } from "@/app/features/viewEmpleado/permisos-empleado/data-table/PermisosEmpleadoTable";
+
+const PermisosEmpleadoPage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
-      <PermisosTable />
+      <PermisosEmpleadoTable />
     </div>
   );
 };
 
-export default PermisosPage;
+export default PermisosEmpleadoPage;
