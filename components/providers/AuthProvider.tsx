@@ -53,42 +53,30 @@ const ROLE_ROUTES = {
 
 // Función helper para obtener la ruta según el rol
 const getRouteForRole = (roles: string[]): string => {
-  // Prioridad: Administrador > Supervisor > Recursos Humanos > Desarrollador > Empleado
-  if (roles.includes("Administrador")) return "/admin";
-  if (roles.includes("Supervisor")) return "/admin";
-  if (roles.includes("Recursos Humanos")) return "/admin";
-  if (roles.includes("Desarrollador")) return "/admin";
-  if (roles.includes("Empleado")) return "/empleado";
+  if (roles.includes("ADMINISTRADOR")) return "/admin";
+  if (roles.includes("SUPERVISOR")) return "/admin";
+  if (roles.includes("RECURSOS HUMANOS")) return "/admin";
+  if (roles.includes("DESARROLLADOR")) return "/admin";
+  if (roles.includes("EMPLEADO")) return "/empleado";
 
-  // Por defecto, ir a empleado
   return "/empleado";
 };
 
-// Función helper para verificar si el usuario puede acceder a una ruta
 const canAccessRoute = (userRoles: string[], pathname: string): boolean => {
-  // Las rutas públicas son accesibles para todos
-  if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
-    return true;
-  }
+  if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) return true;
 
-  // Si es ruta de admin
   if (pathname.startsWith("/admin")) {
     return userRoles.some((role) =>
-      [
-        "Administrador",
-        "Supervisor",
-        "Recursos Humanos",
-        "Desarrollador",
-      ].includes(role),
+      ["ADMIN", "SUPERVISOR", "RECURSOS HUMANOS", "DESARROLLADOR"].includes(
+        role,
+      ),
     );
   }
 
-  // Si es ruta de empleado
   if (pathname.startsWith("/empleado")) {
-    return userRoles.includes("Empleado");
+    return userRoles.includes("EMPLEADO");
   }
 
-  // Por defecto, permitir acceso
   return true;
 };
 
@@ -182,10 +170,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const hasAccess = canAccessRoute(user.roles, pathname || "");
 
       if (!hasAccess) {
+        console.log("❌ Acceso denegado a:", pathname, "Roles:", user.roles);
         // Si no tiene acceso, redirigir a su ruta por defecto
         const targetRoute = getRouteForRole(user.roles);
         router.replace(targetRoute);
         return;
+      } else {
+        console.log("✅ Acceso permitido a:", pathname, "Roles:", user.roles);
       }
     }
   }, [pathname, isLoading, router, user]);

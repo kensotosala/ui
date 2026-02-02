@@ -50,7 +50,7 @@ export const authService = {
     } catch (error: any) {
       throw new Error(
         error.response?.data?.message ||
-          "Credenciales incorrectas. Por favor, verifique su usuario y contraseña."
+          "Credenciales incorrectas. Por favor, verifique su usuario y contraseña.",
       );
     }
   },
@@ -80,38 +80,44 @@ export const authService = {
         atob(base64)
           .split("")
           .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-          .join("")
+          .join(""),
       );
 
       const payload = JSON.parse(jsonPayload);
 
-      const roles =
+      const rawRoles =
+        payload.Roles ??
         payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-      const roleIds =
-        payload["RoleId"]?.toString().split(",").map(Number) || [];
+
+      const roles = Array.isArray(rawRoles)
+        ? rawRoles.map((r) => r.toUpperCase())
+        : rawRoles
+          ? [rawRoles.toUpperCase()]
+          : [];
 
       return {
-        userId: parseInt(
-          payload["UserId"] ||
+        userId: Number(
+          payload.UserId ??
             payload[
               "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
-            ]
+            ],
         ),
         username:
-          payload[
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
-          ] || payload["Username"],
-        employeeId: parseInt(payload["EmployeeId"] || 0),
-        employeeCode: payload["EmployeeCode"] || "",
-        fullName: payload["FullName"] || "",
-        email: payload["Email"] || "",
-        departmentId: parseInt(payload["DepartmentId"] || 0),
-        positionId: parseInt(payload["PositionId"] || 0),
-        roles: Array.isArray(roles) ? roles : roles ? [roles] : [],
-        roleIds: roleIds,
+          payload.Username ??
+          payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
+        employeeId: Number(payload.EmployeeId ?? 0),
+        employeeCode: payload.EmployeeCode ?? "",
+        fullName: payload.FullName ?? "",
+        email: payload.Email ?? "",
+        departmentId: Number(payload.DepartmentId ?? 0),
+        positionId: Number(payload.PositionId ?? 0),
+        roles,
+        roleIds: payload.RoleId
+          ? payload.RoleId.toString().split(",").map(Number)
+          : [],
       };
     } catch (error) {
-      console.error("Error al decodificar JWT:", error);
+      console.error("❌ Error al decodificar JWT:", error);
       return null;
     }
   },
