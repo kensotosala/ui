@@ -12,6 +12,7 @@ import {
   PlaneIcon,
   Stethoscope,
   User2,
+  Wallet,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -82,6 +83,11 @@ const adminMenuGroups = [
         icon: Clock,
       },
       {
+        title: "Nomina",
+        url: "/admin/nominas",
+        icon: Wallet,
+      },
+      {
         title: "Permisos",
         url: "/admin/permisos",
         icon: Key,
@@ -113,6 +119,11 @@ const empleadoMenuGroups = [
         title: "Mis Asistencias",
         url: "/empleado/asistencias",
         icon: CalendarCheck,
+      },
+      {
+        title: "Mis Nóminas",
+        url: "/empleado/nominas",
+        icon: Wallet,
       },
       {
         title: "Mis Permisos",
