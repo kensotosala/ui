@@ -23,15 +23,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useEmpleados } from "@/app/features/empleados/hooks/useEmpleado";
 import { usePermisos } from "../../hooks/usePermisos";
@@ -39,6 +30,8 @@ import { PermisoCreateDialog } from "./dialogs/create-dialog";
 import { PermisoDetailsDialog } from "./dialogs/details-dialog";
 import { PermisoEditDialog } from "./dialogs/edit-dialog";
 import { PermisoDeleteDialog } from "./dialogs/delete-dialog";
+import { useAuthContext } from "@/components/providers/AuthProvider";
+import { toast } from "react-toastify";
 
 export function PermisosTable() {
   const {
@@ -54,6 +47,8 @@ export function PermisosTable() {
 
   const { empleados } = useEmpleados();
 
+  const { user } = useAuthContext();
+
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
@@ -62,7 +57,7 @@ export function PermisosTable() {
   const [openRechazar, setOpenRechazar] = useState(false);
 
   const [selectedPermiso, setSelectedPermiso] = useState<Permiso | null>(null);
-  const [jefeAprobador, setJefeAprobador] = useState<number | null>(null);
+  const [, setJefeAprobador] = useState<number | null>(null);
   const [comentariosRechazo, setComentariosRechazo] = useState("");
 
   const handleCreate = async (data: CrearPermisoDTO) => {
@@ -97,16 +92,28 @@ export function PermisosTable() {
     }
   };
 
+  // Updated component handlers
   const handleAprobar = async () => {
-    if (!selectedPermiso || !jefeAprobador) {
-      alert("Debe seleccionar un jefe aprobador");
+    if (!selectedPermiso) {
+      toast.error("Debe seleccionar un permiso");
+      return;
+    }
+
+    if (!user) {
+      toast.error("Debe estar autenticado para aprobar");
+      return;
+    }
+
+    // Validate current state
+    if (selectedPermiso.estadoSolicitud !== EstadoPermiso.PENDIENTE) {
+      toast.error("Solo se pueden aprobar permisos pendientes");
       return;
     }
 
     try {
       const dto: AprobarRechazarPermisoDTO = {
         estadoSolicitud: EstadoPermiso.APROBADA,
-        jefeApruebaId: jefeAprobador,
+        jefeApruebaId: user.employeeId!,
       };
 
       await aprobarRechazarPermiso({
@@ -114,26 +121,44 @@ export function PermisosTable() {
         data: dto,
       });
 
+      toast.success("Permiso aprobado exitosamente");
       setOpenAprobar(false);
       setSelectedPermiso(null);
-      setJefeAprobador(null);
       refetch();
     } catch (error) {
       console.error("Error al aprobar:", error);
+      toast.error("Error al aprobar el permiso");
     }
   };
 
   const handleRechazar = async () => {
-    if (!selectedPermiso || !jefeAprobador) {
-      alert("Debe seleccionar un jefe aprobador");
+    if (!selectedPermiso) {
+      toast.error("Debe seleccionar un permiso");
+      return;
+    }
+
+    if (!user) {
+      toast.error("Debe estar autenticado para rechazar");
+      return;
+    }
+
+    // Validate current state
+    if (selectedPermiso.estadoSolicitud !== EstadoPermiso.PENDIENTE) {
+      toast.error("Solo se pueden rechazar permisos pendientes");
+      return;
+    }
+
+    // CRITICAL: Validate required comments
+    if (!comentariosRechazo.trim()) {
+      toast.error("Los comentarios son obligatorios al rechazar");
       return;
     }
 
     try {
       const dto: AprobarRechazarPermisoDTO = {
         estadoSolicitud: EstadoPermiso.RECHAZADA,
-        jefeApruebaId: jefeAprobador,
-        comentariosRechazo: comentariosRechazo || undefined,
+        jefeApruebaId: user.employeeId!,
+        comentariosRechazo: comentariosRechazo.trim(),
       };
 
       await aprobarRechazarPermiso({
@@ -141,13 +166,14 @@ export function PermisosTable() {
         data: dto,
       });
 
+      toast.success("Permiso rechazado exitosamente");
       setOpenRechazar(false);
       setSelectedPermiso(null);
-      setJefeAprobador(null);
       setComentariosRechazo("");
       refetch();
     } catch (error) {
       console.error("Error al rechazar:", error);
+      toast.error("Error al rechazar el permiso");
     }
   };
 
@@ -275,37 +301,7 @@ export function PermisosTable() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Aprobar Solicitud de Permiso</DialogTitle>
-            <DialogDescription>
-              Seleccione el jefe que aprueba esta solicitud de permiso
-            </DialogDescription>
           </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="jefeAprobador">Jefe Aprobador *</Label>
-              <Select
-                value={jefeAprobador?.toString() || ""}
-                onValueChange={(value) => setJefeAprobador(parseInt(value))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione un jefe" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Jefes</SelectLabel>
-                    {empleados.map((empleado) => (
-                      <SelectItem
-                        key={empleado.idEmpleado}
-                        value={empleado.idEmpleado.toString()}
-                      >
-                        {empleado.nombre} {empleado.primerApellido}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
           <DialogFooter>
             <Button
@@ -317,9 +313,7 @@ export function PermisosTable() {
             >
               Cancelar
             </Button>
-            <Button onClick={handleAprobar} disabled={!jefeAprobador}>
-              Aprobar Solicitud
-            </Button>
+            <Button onClick={handleAprobar}>Aprobar Solicitud</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -331,7 +325,6 @@ export function PermisosTable() {
           setOpenRechazar(open);
           if (!open) {
             setSelectedPermiso(null);
-            setJefeAprobador(null);
             setComentariosRechazo("");
           }
         }}
@@ -340,46 +333,28 @@ export function PermisosTable() {
           <DialogHeader>
             <DialogTitle>Rechazar Solicitud de Permiso</DialogTitle>
             <DialogDescription>
-              Seleccione el jefe que rechaza esta solicitud y opcionalmente
-              agregue comentarios
+              Proporcione los motivos del rechazo. Este campo es obligatorio.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="jefeAprobador">Jefe que Rechaza *</Label>
-              <Select
-                value={jefeAprobador?.toString() || ""}
-                onValueChange={(value) => setJefeAprobador(parseInt(value))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione un jefe" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Jefes</SelectLabel>
-                    {empleados.map((empleado) => (
-                      <SelectItem
-                        key={empleado.idEmpleado}
-                        value={empleado.idEmpleado.toString()}
-                      >
-                        {empleado.nombre} {empleado.primerApellido}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="comentarios">Comentarios de Rechazo</Label>
+              <Label htmlFor="comentarios">
+                Comentarios de Rechazo <span className="text-red-500">*</span>
+              </Label>
               <Textarea
                 id="comentarios"
-                placeholder="Ingrese los motivos del rechazo (opcional)"
+                placeholder="Ingrese los motivos del rechazo..."
                 value={comentariosRechazo}
                 onChange={(e) => setComentariosRechazo(e.target.value)}
                 rows={4}
+                className={!comentariosRechazo.trim() ? "border-red-300" : ""}
               />
+              {!comentariosRechazo.trim() && (
+                <p className="text-sm text-red-500 mt-1">
+                  Este campo es obligatorio
+                </p>
+              )}
             </div>
           </div>
 
@@ -388,7 +363,6 @@ export function PermisosTable() {
               variant="outline"
               onClick={() => {
                 setOpenRechazar(false);
-                setJefeAprobador(null);
                 setComentariosRechazo("");
               }}
             >
@@ -397,7 +371,7 @@ export function PermisosTable() {
             <Button
               variant="destructive"
               onClick={handleRechazar}
-              disabled={!jefeAprobador}
+              disabled={!comentariosRechazo.trim()}
             >
               Rechazar Solicitud
             </Button>

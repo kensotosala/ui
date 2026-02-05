@@ -13,6 +13,7 @@ import {
   Stethoscope,
   User2,
   Wallet,
+  WalletMinimalIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -88,6 +89,11 @@ const adminMenuGroups = [
         icon: Wallet,
       },
       {
+        title: "Aguinaldos",
+        url: "/admin/aguinaldos",
+        icon: WalletMinimalIcon,
+      },
+      {
         title: "Permisos",
         url: "/admin/permisos",
         icon: Key,
@@ -124,6 +130,11 @@ const empleadoMenuGroups = [
         title: "Mis Nóminas",
         url: "/empleado/nominas",
         icon: Wallet,
+      },
+      {
+        title: "Mis Aguinaldos",
+        url: "/empleado/aguinaldos",
+        icon: WalletMinimalIcon,
       },
       {
         title: "Mis Permisos",
